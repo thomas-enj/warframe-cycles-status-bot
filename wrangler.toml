@@ -4,5 +4,5 @@ compatibility_date = "2024-04-01"
 compatibility_flags = ["python_workers"]
 
 [triggers]
-# Runs automatically every 5 minutes
-crons = ["*/5 * * * *"]
+# Runs automatically every 1 minutes
+crons = ["*/1 * * * *"]
