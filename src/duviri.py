@@ -42,7 +42,7 @@ async def update_duviri_channel(env):
     z_state = "Corpus 🔷" if zariman.get("isCorpus") else "Grineer 🔴"
     fields.append({
         "name": "🚢 Zariman Ten-Zero",
-        "value": f"Occupant: **{z_state}**\nChanges <t:{z_ts}:R>",
+        "value": f"Occupant: **{z_state}**\nChanges <t:{z_ts}:R>\n\u200b",
         "inline": False,
     })
 

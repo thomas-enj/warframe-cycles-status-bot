@@ -69,7 +69,7 @@ async def update_open_world_channel(env):
     cb_active = _format_cambion_state(cambion)
     fields.append({
         "name": "🦠 Deimos (Cambion Drift)",
-        "value": f"State: **{cb_active}**\nChanges <t:{cb_ts}:R>",
+        "value": f"State: **{cb_active}**\nChanges <t:{cb_ts}:R>\n\u200b",
         "inline": False,
     })
 
