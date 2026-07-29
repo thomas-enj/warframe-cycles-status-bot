@@ -2,7 +2,6 @@ import asyncio
 from utils import (
     fetch_json,
     format_remaining_from_iso,
-    iso_to_unix,
     send_discord_patch,
 )
 
@@ -51,7 +50,6 @@ async def update_open_world_channel(env):
 
     # 🌄 Cetus
     c_expiry = cetus.get("expiry")
-    c_ts = iso_to_unix(c_expiry)
     c_remaining = format_remaining_from_iso(c_expiry)
     is_day = cetus.get("isDay")
     c_state = "Day ☀️" if is_day else "Night 🌙"
@@ -60,7 +58,7 @@ async def update_open_world_channel(env):
         "name": "🌄 Cetus (Plains of Eidolon)",
         "value": (
             f"State: **{c_state}**\n"
-            f"Next: **{c_next}** {c_remaining} (<t:{c_ts}:R>)"
+            f"Next: **{c_next}**  {c_remaining}"
         ),
         "inline": False,
     })
@@ -68,7 +66,6 @@ async def update_open_world_channel(env):
 
     # ❄️ Fortuna
     v_expiry = vallis.get("expiry")
-    v_ts = iso_to_unix(v_expiry)
     v_remaining = format_remaining_from_iso(v_expiry)
     v_state = _format_vallis_state(vallis)
     v_next = "Cold ❄️" if "Warm" in v_state else "Warm 🔥"
@@ -76,7 +73,7 @@ async def update_open_world_channel(env):
         "name": "❄️ Fortuna (Orb Vallis)",
         "value": (
             f"State: **{v_state}**\n"
-            f"Next: **{v_next}** {v_remaining} (<t:{v_ts}:R>)"
+            f"Next: **{v_next}**  {v_remaining}"
         ),
         "inline": False,
     })
@@ -84,7 +81,6 @@ async def update_open_world_channel(env):
 
     # 🦠 Deimos
     cb_expiry = cambion.get("expiry")
-    cb_ts = iso_to_unix(cb_expiry)
     cb_remaining = format_remaining_from_iso(cb_expiry)
     cb_active = _format_cambion_state(cambion)
     cb_next = "Vome 🔵" if "Fass" in cb_active else "Fass 🔴"
@@ -92,7 +88,7 @@ async def update_open_world_channel(env):
         "name": "🦠 Deimos (Cambion Drift)",
         "value": (
             f"State: **{cb_active}**\n"
-            f"Next: **{cb_next}** {cb_remaining} (<t:{cb_ts}:R>)\n\u200b"
+            f"Next: **{cb_next}**  {cb_remaining}\n\u200b"
         ),
         "inline": False,
     })
