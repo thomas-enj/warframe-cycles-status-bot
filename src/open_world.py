@@ -1,5 +1,10 @@
 import asyncio
-from utils import fetch_json, iso_to_unix, send_discord_patch
+from utils import (
+    fetch_json,
+    format_remaining_from_iso,
+    iso_to_unix,
+    send_discord_patch,
+)
 
 
 def _format_vallis_state(vallis: dict) -> str:
@@ -45,35 +50,50 @@ async def update_open_world_channel(env):
         })
 
     # 🌄 Cetus
-    c_ts = iso_to_unix(cetus.get("expiry"))
+    c_expiry = cetus.get("expiry")
+    c_ts = iso_to_unix(c_expiry)
+    c_remaining = format_remaining_from_iso(c_expiry)
     is_day = cetus.get("isDay")
     c_state = "Day ☀️" if is_day else "Night 🌙"
     c_next = "Night 🌙" if is_day else "Day ☀️"
     fields.append({
         "name": "🌄 Cetus (Plains of Eidolon)",
-        "value": f"State: **{c_state}**\nNext: **{c_next}** <t:{c_ts}:R>",
+        "value": (
+            f"State: **{c_state}**\n"
+            f"Next: **{c_next}** {c_remaining} (<t:{c_ts}:R>)"
+        ),
         "inline": False,
     })
     add_spacer()
 
     # ❄️ Fortuna
-    v_ts = iso_to_unix(vallis.get("expiry"))
+    v_expiry = vallis.get("expiry")
+    v_ts = iso_to_unix(v_expiry)
+    v_remaining = format_remaining_from_iso(v_expiry)
     v_state = _format_vallis_state(vallis)
     v_next = "Cold ❄️" if "Warm" in v_state else "Warm 🔥"
     fields.append({
         "name": "❄️ Fortuna (Orb Vallis)",
-        "value": f"State: **{v_state}**\nNext: **{v_next}** <t:{v_ts}:R>",
+        "value": (
+            f"State: **{v_state}**\n"
+            f"Next: **{v_next}** {v_remaining} (<t:{v_ts}:R>)"
+        ),
         "inline": False,
     })
     add_spacer()
 
     # 🦠 Deimos
-    cb_ts = iso_to_unix(cambion.get("expiry"))
+    cb_expiry = cambion.get("expiry")
+    cb_ts = iso_to_unix(cb_expiry)
+    cb_remaining = format_remaining_from_iso(cb_expiry)
     cb_active = _format_cambion_state(cambion)
     cb_next = "Vome 🔵" if "Fass" in cb_active else "Fass 🔴"
     fields.append({
         "name": "🦠 Deimos (Cambion Drift)",
-        "value": f"State: **{cb_active}**\nNext: **{cb_next}** <t:{cb_ts}:R>\n\u200b",
+        "value": (
+            f"State: **{cb_active}**\n"
+            f"Next: **{cb_next}** {cb_remaining} (<t:{cb_ts}:R>)\n\u200b"
+        ),
         "inline": False,
     })
 

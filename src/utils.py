@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from js import Object, fetch
 from pyodide.ffi import to_js
 
@@ -23,6 +23,33 @@ def iso_to_unix(iso_str: str) -> int:
     clean_iso = iso_str.replace("Z", "+00:00")
     dt = datetime.fromisoformat(clean_iso)
     return int(dt.timestamp())
+
+
+def format_remaining_from_iso(iso_str: str) -> str:
+    """Formats remaining duration from now to ISO expiry with h/m precision."""
+    if not iso_str:
+        return "unknown"
+
+    clean_iso = iso_str.replace("Z", "+00:00")
+    expiry = datetime.fromisoformat(clean_iso)
+    if expiry.tzinfo is None:
+        expiry = expiry.replace(tzinfo=timezone.utc)
+
+    now = datetime.now(timezone.utc)
+    total_seconds = int((expiry - now).total_seconds())
+
+    if total_seconds <= 0:
+        return "now"
+
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+
+    if hours > 0:
+        return f"in {hours}h {minutes:02d}m"
+    if minutes > 0:
+        return f"in {minutes}m"
+    return f"in {seconds}s"
 
 
 async def send_discord_patch(
