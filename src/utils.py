@@ -26,7 +26,7 @@ def iso_to_unix(iso_str: str) -> int:
 
 
 def format_remaining_from_iso(iso_str: str) -> str:
-    """Formats remaining duration from now to ISO expiry with h/m precision."""
+    """Formats remaining duration using natural English hour/minute labels."""
     if not iso_str:
         return "unknown"
 
@@ -45,11 +45,19 @@ def format_remaining_from_iso(iso_str: str) -> str:
     minutes = (total_seconds % 3600) // 60
     seconds = total_seconds % 60
 
+    hour_word = "hour" if hours == 1 else "hours"
+    minute_word = "minute" if minutes == 1 else "minutes"
+    second_word = "second" if seconds == 1 else "seconds"
+
     if hours > 0:
-        return f"in {hours}h {minutes:02d}m"
+        if minutes > 0:
+            if hours == 1 and minutes == 1:
+                return " in 1 hour and 1 minute"
+            return f" in {hours} {hour_word} {minutes} {minute_word}"
+        return f" in {hours} {hour_word}"
     if minutes > 0:
-        return f"in {minutes}m"
-    return f"in {seconds}s"
+        return f" in {minutes} {minute_word}"
+    return f" in {seconds} {second_word}"
 
 
 async def send_discord_patch(
