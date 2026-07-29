@@ -43,7 +43,7 @@ async def update_open_world_channel(env):
     fields.append({
         "name": "🌄 Cetus (Plains of Eidolon)",
         "value": f"State: **{c_state}**\nChanges <t:{c_ts}:R>",
-        "inline": True,
+        "inline": False,
     })
 
     # ❄️ Fortuna
@@ -52,7 +52,7 @@ async def update_open_world_channel(env):
     fields.append({
         "name": "❄️ Fortuna (Orb Vallis)",
         "value": f"State: **{v_state}**\nChanges <t:{v_ts}:R>",
-        "inline": True,
+        "inline": False,
     })
 
     # 🦠 Deimos
@@ -61,7 +61,7 @@ async def update_open_world_channel(env):
     fields.append({
         "name": "🦠 Deimos (Cambion Drift)",
         "value": f"State: **{cb_active}**\nChanges <t:{cb_ts}:R>",
-        "inline": True,
+        "inline": False,
     })
 
     embed = {

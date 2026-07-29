@@ -26,7 +26,7 @@ async def update_duviri_channel(env):
     fields.append({
         "name": "🌀 Duviri Spiral",
         "value": f"Mood: **{d_state}**\nChanges <t:{d_ts}:R>",
-        "inline": True,
+        "inline": False,
     })
 
     # 🚢 Zariman
@@ -35,7 +35,7 @@ async def update_duviri_channel(env):
     fields.append({
         "name": "🚢 Zariman Ten-Zero",
         "value": f"Occupant: **{z_state}**\nChanges <t:{z_ts}:R>",
-        "inline": True,
+        "inline": False,
     })
 
     embed = {
