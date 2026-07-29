@@ -19,6 +19,13 @@ async def update_duviri_channel(env):
 
     fields = []
 
+    def add_spacer():
+        fields.append({
+            "name": "\u200b",
+            "value": "\u200b",
+            "inline": False,
+        })
+
     # 🌀 Duviri
     d_ts = iso_to_unix(duviri.get("expiry"))
     d_state_raw = str(duviri.get("state", "")).lower()
@@ -28,6 +35,7 @@ async def update_duviri_channel(env):
         "value": f"Mood: **{d_state}**\nChanges <t:{d_ts}:R>",
         "inline": False,
     })
+    add_spacer()
 
     # 🚢 Zariman
     z_ts = iso_to_unix(zariman.get("expiry"))

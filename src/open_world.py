@@ -37,6 +37,13 @@ async def update_open_world_channel(env):
 
     fields = []
 
+    def add_spacer():
+        fields.append({
+            "name": "\u200b",
+            "value": "\u200b",
+            "inline": False,
+        })
+
     # 🌄 Cetus
     c_ts = iso_to_unix(cetus.get("expiry"))
     c_state = "Day ☀️" if cetus.get("isDay") else "Night 🌙"
@@ -45,6 +52,7 @@ async def update_open_world_channel(env):
         "value": f"State: **{c_state}**\nChanges <t:{c_ts}:R>",
         "inline": False,
     })
+    add_spacer()
 
     # ❄️ Fortuna
     v_ts = iso_to_unix(vallis.get("expiry"))
@@ -54,6 +62,7 @@ async def update_open_world_channel(env):
         "value": f"State: **{v_state}**\nChanges <t:{v_ts}:R>",
         "inline": False,
     })
+    add_spacer()
 
     # 🦠 Deimos
     cb_ts = iso_to_unix(cambion.get("expiry"))
