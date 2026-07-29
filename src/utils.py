@@ -43,7 +43,7 @@ async def send_discord_patch(
             "Authorization": f"Bot {token.strip()}",
             "Content-Type": "application/json",
         },
-        "body": json.dumps({"embeds": [embed]}),
+        "body": json.dumps({"content": "", "embeds": [embed]}),
     }
 
     # Convert Python payload to native JavaScript object
