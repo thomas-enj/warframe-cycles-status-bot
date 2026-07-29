@@ -48,6 +48,7 @@ async def update_duviri_channel(env):
 
     embed = {
         "title": "🌀 Warframe - Duviri & Zariman",
+        "description": "\u200b",
         "color": 10181046,  # Purple
         "fields": fields,
         "footer": {

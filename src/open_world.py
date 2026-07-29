@@ -75,6 +75,7 @@ async def update_open_world_channel(env):
 
     embed = {
         "title": "⚔️ Warframe - Open Worlds",
+        "description": "\u200b",
         "color": 3447003,  # Blue
         "fields": fields,
         "footer": {
