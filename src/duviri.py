@@ -17,6 +17,15 @@ async def update_duviri_channel(env):
         "fear": "Fear 😱",
     }
 
+    # Dictionary of the logical sequence of the spiral
+    emotion_next = {
+        "joy": "Anger 😡",
+        "anger": "Sorrow 😢",
+        "sorrow": "Fear 😱",
+        "fear": "Envy 🟢",
+        "envy": "Joy 😊",
+    }
+
     fields = []
 
     def add_spacer():
@@ -30,19 +39,22 @@ async def update_duviri_channel(env):
     d_ts = iso_to_unix(duviri.get("expiry"))
     d_state_raw = str(duviri.get("state", "")).lower()
     d_state = emotion_en.get(d_state_raw, d_state_raw.capitalize())
+    d_next = emotion_next.get(d_state_raw, "Unknown")
     fields.append({
         "name": "🌀 Duviri Spiral",
-        "value": f"Mood: **{d_state}**\nChanges <t:{d_ts}:R>",
+        "value": f"Mood: **{d_state}**\nNext: **{d_next}** <t:{d_ts}:R>",
         "inline": False,
     })
     add_spacer()
 
     # 🚢 Zariman
     z_ts = iso_to_unix(zariman.get("expiry"))
+    is_corpus = zariman.get("isCorpus")
     z_state = "Corpus 🔷" if zariman.get("isCorpus") else "Grineer 🔴"
+    z_next = "Grineer 🔴" if is_corpus else "Corpus 🔷"
     fields.append({
         "name": "🚢 Zariman Ten-Zero",
-        "value": f"Occupant: **{z_state}**\nChanges <t:{z_ts}:R>\n\u200b",
+        "value": f"Occupant: **{z_state}**\nNext: **{z_next}** <t:{z_ts}:R>\n\u200b",
         "inline": False,
     })
 

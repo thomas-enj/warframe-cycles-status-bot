@@ -46,10 +46,12 @@ async def update_open_world_channel(env):
 
     # 🌄 Cetus
     c_ts = iso_to_unix(cetus.get("expiry"))
-    c_state = "Day ☀️" if cetus.get("isDay") else "Night 🌙"
+    is_day = cetus.get("isDay")
+    c_state = "Day ☀️" if is_day else "Night 🌙"
+    c_next = "Night 🌙" if is_day else "Day ☀️"
     fields.append({
         "name": "🌄 Cetus (Plains of Eidolon)",
-        "value": f"State: **{c_state}**\nChanges <t:{c_ts}:R>",
+        "value": f"State: **{c_state}**\nNext: **{c_next}** <t:{c_ts}:R>",
         "inline": False,
     })
     add_spacer()
@@ -57,9 +59,10 @@ async def update_open_world_channel(env):
     # ❄️ Fortuna
     v_ts = iso_to_unix(vallis.get("expiry"))
     v_state = _format_vallis_state(vallis)
+    v_next = "Cold ❄️" if "Warm" in v_state else "Warm 🔥"
     fields.append({
         "name": "❄️ Fortuna (Orb Vallis)",
-        "value": f"State: **{v_state}**\nChanges <t:{v_ts}:R>",
+        "value": f"State: **{v_state}**\nNext: **{v_next}** <t:{v_ts}:R>",
         "inline": False,
     })
     add_spacer()
@@ -67,9 +70,10 @@ async def update_open_world_channel(env):
     # 🦠 Deimos
     cb_ts = iso_to_unix(cambion.get("expiry"))
     cb_active = _format_cambion_state(cambion)
+    cb_next = "Vome 🔵" if "Fass" in cb_active else "Fass 🔴"
     fields.append({
         "name": "🦠 Deimos (Cambion Drift)",
-        "value": f"State: **{cb_active}**\nChanges <t:{cb_ts}:R>\n\u200b",
+        "value": f"State: **{cb_active}**\nNext: **{cb_next}** <t:{cb_ts}:R>\n\u200b",
         "inline": False,
     })
 
