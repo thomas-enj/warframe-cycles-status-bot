@@ -1,0 +1,8 @@
+name = "baro-tracker-worker"
+main = "src/main.py"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["python_workers"]
+
+[triggers]
+# Runs automatically every hour
+crons = ["0 * * * *"]
