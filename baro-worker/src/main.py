@@ -1,7 +1,8 @@
 import json
 from datetime import datetime
 
-from js import Headers, Request, fetch
+from js import Headers, Object, Request, fetch
+from pyodide.ffi import to_js
 
 
 WARFRAME_API_URL = "https://api.warframestat.us/pc/voidTrader"
@@ -51,10 +52,15 @@ def _discord_timestamp(value):
 
 
 def _discord_headers(token):
-    return Headers.new({
+    return _headers({
         "Authorization": f"Bot {token}",
         "Content-Type": "application/json",
     })
+
+
+def _headers(values):
+    js_values = to_js(values, dict_converter=Object.fromEntries)
+    return Headers.new(js_values)
 
 
 async def update_status_message(env, content):
@@ -108,7 +114,7 @@ async def get_inventory_message_state(env):
 
 async def trigger_github_action(token, repo, is_active):
     url = f"{GITHUB_API_URL}/repos/{repo}/dispatches"
-    headers = Headers.new({
+    headers = _headers({
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
         "User-Agent": "baro-tracker-worker",
