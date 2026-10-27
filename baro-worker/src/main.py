@@ -29,14 +29,14 @@ async def on_scheduled(event, env, ctx=None):
             "**Baro Ki'Teer is currently here!**\n"
             f"📍 **Location:** {location}\n"
             f"⏳ **Leaves:** {_format_countdown(expiry)} "
-            f"({_format_paris_datetime(expiry)} Paris time)"
+            f"({_format_paris_datetime(expiry)})"
         )
     else:
         status_text = (
             "**Baro Ki'Teer is currently absent.**\n\n"
             f"📍 **Next location:** {location}\n"
             f"⏳ **Arrives:** {_format_countdown(activation)} "
-            f"({_format_paris_datetime(activation)} Paris time)"
+            f"({_format_paris_datetime(activation)})"
         )
 
     status_text += "\n\n\u200b"
@@ -78,14 +78,20 @@ def _format_countdown(target_timestamp):
 def _format_paris_datetime(target_timestamp):
     options = to_js(
         {
-            "dateStyle": "full",
-            "timeStyle": "short",
+            "weekday": "long",
+            "month": "long",
+            "day": "numeric",
+            "year": "numeric",
+            "hour": "numeric",
+            "minute": "2-digit",
             "timeZone": "Europe/Paris",
+            "timeZoneName": "shortOffset",
         },
         dict_converter=Object.fromEntries,
     )
     formatter = Intl.DateTimeFormat.new("en-US", options)
-    return str(formatter.format(Date.new(target_timestamp * 1000)))
+    formatted = str(formatter.format(Date.new(target_timestamp * 1000)))
+    return formatted.replace("GMT", "UTC")
 
 
 def _discord_headers(token):
