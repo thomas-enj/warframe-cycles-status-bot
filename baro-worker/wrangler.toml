@@ -3,6 +3,9 @@ main = "src/main.py"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["python_workers"]
 
+[vars]
+DISCORD_CHANNEL = "1541811903385444382"
+
 [triggers]
 # Runs automatically every hour
 crons = ["0 * * * *"]
