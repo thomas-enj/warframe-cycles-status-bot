@@ -36,6 +36,12 @@ In your Cloudflare Worker's dashboard, go to *Settings > Variables* and add the 
 | `OPEN_WORLD_MESSAGE_ID` | The Message ID for the Open Worlds status message. |
 | `DUVIRI_CHANNEL_ID` | The Channel ID for the Duviri & Zariman status message. |
 | `DUVIRI_MESSAGE_ID` | The Message ID for the Duviri & Zariman status message. |
+| `BARO_MSG1_ID` | The Baro status and countdown message ID. |
+| `BARO_MSG2_ID` | The Baro inventory message ID. |
+| `GITHUB_TOKEN` | A GitHub token with permission to dispatch an event to this repository. |
+| `GITHUB_REPO` | The repository in `owner/repository` format. |
+
+For the Baro worker, also bind `DISCORD_CHANNEL` to the channel containing both Baro messages. The inventory workflow needs the GitHub Actions secrets `DISCORD_TOKEN`, `DISCORD_CHANNEL`, and `BARO_MSG2_ID`. The Worker needs `DISCORD_TOKEN`, `DISCORD_CHANNEL`, `BARO_MSG1_ID`, `BARO_MSG2_ID`, `GITHUB_TOKEN`, and `GITHUB_REPO` as Cloudflare secrets or environment bindings.
 
 ## 🚀 Deployment
 
