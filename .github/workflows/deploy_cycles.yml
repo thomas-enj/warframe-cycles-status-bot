@@ -1,0 +1,25 @@
+name: Deploy Cycles Worker
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # Only run if a file in these directories/files is modified
+      - 'src/**'
+      - 'wrangler.toml'
+      - 'package.json'
+
+jobs:
+  deploy:
+    name: Deploy Cycles Worker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
