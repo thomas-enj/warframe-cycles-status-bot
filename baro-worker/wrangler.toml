@@ -8,4 +8,6 @@ DISCORD_CHANNEL = "1541811903385444382"
 
 [triggers]
 # Runs automatically every hour
-crons = ["0 * * * *"]
+# crons = ["0 * * * *"]
+# Runs automatically every minute
+crons = ["*/1 * * * *"]
