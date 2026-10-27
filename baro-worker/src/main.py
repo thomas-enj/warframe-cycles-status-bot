@@ -1,7 +1,7 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
-from js import Headers, Object, Request, fetch
+from js import Date, Headers, Intl, Object, Request, fetch
 from pyodide.ffi import to_js
 
 
@@ -28,15 +28,18 @@ async def on_scheduled(event, env, ctx=None):
         status_text = (
             "**Baro Ki'Teer is currently here!**\n"
             f"📍 **Location:** {location}\n"
-            f"⏳ **Leaves:** <t:{expiry}:R> (<t:{expiry}:F>)"
+            f"⏳ **Leaves:** {_format_countdown(expiry)} "
+            f"({_format_paris_datetime(expiry)} Paris time)"
         )
     else:
         status_text = (
-            "**Baro Ki'Teer is currently absent.**\n"
+            "**Baro Ki'Teer is currently absent.**\n\n"
             f"📍 **Next location:** {location}\n"
-            f"⏳ **Arrives:** <t:{activation}:R> (<t:{activation}:F>)"
+            f"⏳ **Arrives:** {_format_countdown(activation)} "
+            f"({_format_paris_datetime(activation)} Paris time)"
         )
 
+    status_text += "\n\n\u200b"
     await update_status_message(env, status_text)
     previous_state = await get_inventory_message_state(env)
     if previous_state is None or previous_state != is_active:
@@ -49,6 +52,40 @@ def _discord_timestamp(value):
     if not value:
         raise ValueError("Warframe API response is missing a Baro date")
     return int(datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp())
+
+
+def _format_countdown(target_timestamp):
+    remaining = max(
+        0,
+        target_timestamp - int(datetime.now(timezone.utc).timestamp()),
+    )
+    if remaining == 0:
+        return "now"
+
+    for seconds_per_unit, unit in (
+        (86400, "day"),
+        (3600, "hour"),
+        (60, "minute"),
+    ):
+        if remaining >= seconds_per_unit:
+            amount = (remaining + seconds_per_unit - 1) // seconds_per_unit
+            plural = "s" if amount != 1 else ""
+            return f"in {amount} {unit}{plural}"
+
+    return "in less than a minute"
+
+
+def _format_paris_datetime(target_timestamp):
+    options = to_js(
+        {
+            "dateStyle": "full",
+            "timeStyle": "short",
+            "timeZone": "Europe/Paris",
+        },
+        dict_converter=Object.fromEntries,
+    )
+    formatter = Intl.DateTimeFormat.new("en-US", options)
+    return str(formatter.format(Date.new(target_timestamp * 1000)))
 
 
 def _discord_headers(token):
