@@ -53,7 +53,7 @@ def main():
         response = requests.get(WARFRAME_API_URL, timeout=20)
         response.raise_for_status()
         inventory = response.json().get("inventory") or []
-        embeds = build_inventory_embeds(inventory)
+        embeds = [build_inventory_embed(inventory)]
     else:
         print("Baro has left. Marking the shop as closed...")
         embeds = [{
@@ -88,79 +88,90 @@ def inventory_category(item):
     return "Miscellaneous"
 
 
-def build_inventory_embeds(inventory):
+def build_inventory_embed(inventory):
     grouped_items = {category: [] for category in INVENTORY_CATEGORIES}
     for item in inventory:
         category = inventory_category(item)
         item_line = (
-            f"**{item.get('item', 'Unknown item')}** - "
+            f"- **{item.get('item', 'Unknown item')}** - "
             f"{item.get('ducats', '?'):,} Ducats / "
             f"{item.get('credits', '?'):,} Credits"
         )
         grouped_items[category].append(item_line)
 
-    embeds = []
-    total_embed_chars = 0
+    title = "Baro Ki'Teer's Inventory"
+    fields = []
+    total_chars = len(title) + 128
     omitted_items = 0
+    stop_adding = False
 
     for category, item_lines in grouped_items.items():
         line_index = 0
         part = 1
-        while line_index < len(item_lines) and len(embeds) < 10:
-            title = f"Baro Ki'Teer's Inventory | {category}"
+        while line_index < len(item_lines) and len(fields) < 25:
+            field_name = category
             if part > 1:
-                title += f" (continued {part})"
+                field_name += f" (continued {part})"
 
-            remaining_chars = 6000 - total_embed_chars - len(title)
-            description_limit = min(4096, remaining_chars)
-            if description_limit < 1:
+            value_limit = min(896, 6000 - total_chars - len(field_name))
+            if value_limit < 1:
+                stop_adding = True
                 break
 
-            description_lines = []
-            description_length = 0
+            field_lines = []
+            field_length = 0
             while line_index < len(item_lines):
                 line = item_lines[line_index]
-                added_length = len(line) + bool(description_lines)
-                if description_length + added_length > description_limit:
+                added_length = len(line) + bool(field_lines)
+                if field_length + added_length > value_limit:
                     break
-                description_lines.append(line)
-                description_length += added_length
+                field_lines.append(line)
+                field_length += added_length
                 line_index += 1
 
-            if not description_lines:
+            if not field_lines:
+                stop_adding = True
                 break
 
-            description = "\n".join(description_lines)
-            embeds.append({
-                "title": title,
-                "description": description,
-                "color": ACTIVE_COLOR,
+            value = "\n".join(field_lines)
+            fields.append({
+                "name": field_name,
+                "value": value,
+                "inline": False,
             })
-            total_embed_chars += len(title) + len(description)
+            total_chars += len(field_name) + len(value)
             part += 1
 
         omitted_items += len(item_lines) - line_index
+        if stop_adding or len(fields) >= 25:
+            break
 
-    if omitted_items and embeds:
+    total_items = sum(len(lines) for lines in grouped_items.values())
+    included_items = sum(
+        len(field["value"].splitlines()) for field in fields
+    )
+    omitted_items = total_items - included_items
+
+    if omitted_items and fields:
         marker = (
             f"\n\n... {omitted_items} more items omitted "
-            "by Discord's embed limit."
+            "by Discord's embed limits."
         )
-        last_embed = embeds[-1]
+        last_field = fields[-1]
         extra_chars = len(marker)
         if (
-            len(last_embed["description"]) + extra_chars <= 4096
-            and total_embed_chars + extra_chars <= 6000
+            len(last_field["value"]) + extra_chars <= 1024
+            and total_chars - 128 + extra_chars <= 6000
         ):
-            last_embed["description"] += marker
+            last_field["value"] += marker
 
-    if not embeds:
-        return [{
-            "title": "Baro Ki'Teer's Inventory",
+    if not fields:
+        return {
+            "title": title,
             "description": "Inventory is temporarily unavailable.",
             "color": ACTIVE_COLOR,
-        }]
-    return embeds
+        }
+    return {"title": title, "color": ACTIVE_COLOR, "fields": fields}
 
 
 if __name__ == "__main__":
