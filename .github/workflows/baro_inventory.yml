@@ -4,6 +4,16 @@ on:
   repository_dispatch:
     types:
       - update_baro_inventory
+  workflow_dispatch:
+    inputs:
+      is_active:
+        description: Is Baro currently present?
+        required: true
+        type: choice
+        default: "true"
+        options:
+          - "true"
+          - "false"
 
 permissions:
   contents: read
@@ -25,7 +35,7 @@ jobs:
 
       - name: Update Discord inventory message
         env:
-          BARO_ACTIVE: ${{ github.event.client_payload.is_active }}
+          BARO_ACTIVE: ${{ github.event_name == 'repository_dispatch' && toJSON(github.event.client_payload.is_active) || inputs.is_active }}
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           DISCORD_CHANNEL: ${{ secrets.DISCORD_CHANNEL }}
           BARO_MSG2_ID: ${{ secrets.BARO_MSG2_ID }}
