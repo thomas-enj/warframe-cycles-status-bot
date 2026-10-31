@@ -9,7 +9,18 @@ ACTIVE_COLOR = 15844367
 INACTIVE_COLOR = 15158332
 INVENTORY_CATEGORIES = (
     "Mods",
-    "Appearance",
+    "Appearance | Warframe Skin",
+    "Appearance | Weapon Skin",
+    "Appearance | Archwing Skin",
+    "Appearance | Landing Craft Skin",
+    "Appearance | Armor",
+    "Appearance | Operator",
+    "Appearance | Companion",
+    "Appearance | Decorations",
+    "Appearance | Glyphs & Emblems",
+    "Appearance | Accessories",
+    "Appearance | Ephemera",
+    "Appearance | Other",
     "Weapons",
     "Miscellaneous",
 )
@@ -74,18 +85,71 @@ def main():
 
 def inventory_category(item):
     unique_name = item.get("uniqueName", "").lower()
+    item_name = item.get("item", "").lower()
 
     is_mod = "/upgrades/mods/" in unique_name
     is_peculiar_mod = "/cosmeticenhancers/peculiars/" in unique_name
     if is_mod or is_peculiar_mod:
         return "Mods"
-    if "/weapons/" in unique_name:
+    is_weapon = "/storeitems/weapons/" in unique_name
+    is_weapon_type = "/types/weapons/" in unique_name
+    if is_weapon or is_weapon_type:
         return "Weapons"
-    if any(path in unique_name for path in APPEARANCE_PATHS):
-        return "Appearance"
-    if "ephemera" in unique_name or "ephemera" in item.get("item", "").lower():
-        return "Appearance"
-    return "Miscellaneous"
+
+    is_appearance = any(path in unique_name for path in APPEARANCE_PATHS)
+    if not is_appearance:
+        return "Miscellaneous"
+
+    if "ephemera" in unique_name or "ephemera" in item_name:
+        return "Appearance | Ephemera"
+    if "immortal skin" in item_name or "/skins/warframe/" in unique_name:
+        return "Appearance | Warframe Skin"
+    if "archwing" in unique_name or "odonata" in item_name:
+        return "Appearance | Archwing Skin"
+    landing_craft_names = ("liset", "xiphos", "mantis", "scimitar")
+    is_landing_craft = "/skins/liset/" in unique_name or any(
+        craft in item_name for craft in landing_craft_names
+    )
+    if is_landing_craft:
+        return "Appearance | Landing Craft Skin"
+    is_companion_path = any(
+        path in unique_name for path in ("/catbrows/", "/sentinels/")
+    )
+    is_companion_item = any(
+        companion in item_name
+        for companion in ("kavat", "kubrow", "sentinel", "moa")
+    )
+    if is_companion_path or is_companion_item:
+        return "Appearance | Companion"
+    if any(path in unique_name for path in ("/operator/", "/accessories/")):
+        return "Appearance | Operator"
+    if any(
+        token in unique_name or token in item_name
+        for token in ("/armor/", "armor", "armour", "pauldrons", "plates")
+    ):
+        return "Appearance | Armor"
+    if any(
+        path in unique_name
+        for path in ("/shipdecos/", "/actionfiguredioramas/", "/plushies/")
+    ):
+        return "Appearance | Decorations"
+    has_glyph_path = any(
+        path in unique_name
+        for path in ("/avatarimages/", "/sigils/", "/emblems/")
+    )
+    has_glyph_name = any(
+        token in item_name for token in ("glyph", "emblem", "sigil", "badge")
+    )
+    if has_glyph_path or has_glyph_name:
+        return "Appearance | Glyphs & Emblems"
+    is_accessory = any(
+        token in item_name for token in ("syandana", "sugatra", "earpiece")
+    )
+    if is_accessory:
+        return "Appearance | Accessories"
+    if "skin" in item_name or "/skins/" in unique_name:
+        return "Appearance | Weapon Skin"
+    return "Appearance | Other"
 
 
 def build_inventory_embed(inventory):
