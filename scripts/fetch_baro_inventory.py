@@ -64,9 +64,11 @@ def main():
         response = requests.get(WARFRAME_API_URL, timeout=20)
         response.raise_for_status()
         inventory = response.json().get("inventory") or []
-        embeds = [build_inventory_embed(inventory)]
+        content = "# Baro Ki'Teer's Inventory"
+        embeds = build_inventory_embeds(inventory)
     else:
         print("Baro has left. Marking the shop as closed...")
+        content = ""
         embeds = [{
             "title": "The shop is closed",
             "description": "Baro Ki'Teer has returned to the Void.",
@@ -76,7 +78,7 @@ def main():
     response = requests.patch(
         message_url,
         headers=headers,
-        json={"content": "", "embeds": embeds},
+        json={"content": content, "embeds": embeds},
         timeout=20,
     )
     response.raise_for_status()
@@ -152,66 +154,120 @@ def inventory_category(item):
     return "Appearance | Other"
 
 
-def build_inventory_embed(inventory):
-    grouped_items = {category: [] for category in INVENTORY_CATEGORIES}
+def build_inventory_embeds(inventory):
+    main_categories = ("Mods", "Appearance", "Weapons", "Miscellaneous")
+    grouped_items = {category: [] for category in main_categories}
     for item in inventory:
-        category = inventory_category(item)
+        classification = inventory_category(item)
+        if classification.startswith("Appearance | "):
+            category = "Appearance"
+            subcategory = classification.split(" | ", maxsplit=1)[1]
+        else:
+            category = classification
+            subcategory = None
         item_line = (
             f"- **{item.get('item', 'Unknown item')}** - "
             f"{_format_number(item.get('ducats'))} Ducats / "
             f"{_format_number(item.get('credits'))} Credits"
         )
-        grouped_items[category].append(item_line)
+        grouped_items[category].append((subcategory, item_line))
 
-    title = "Baro Ki'Teer's Inventory"
-    description_parts = []
-    description_length = 0
+    embeds = []
+    total_embed_chars = 0
     included_items = 0
-    description_limit = 3900
-    overflow = False
+    total_items = len(inventory)
 
-    for category, item_lines in grouped_items.items():
-        if not item_lines:
+    for category, entries in grouped_items.items():
+        if not entries:
             continue
 
-        heading = f"**{category}**"
-        heading_prefix = "\n\n" if description_parts else ""
-        heading_text = f"{heading_prefix}{heading}"
-        if description_length + len(heading_text) + 1 > description_limit:
-            overflow = True
+        title = category
+        available_chars = 6000 - total_embed_chars - len(title) - 128
+        description_limit = min(3800, available_chars)
+        if description_limit < 1:
             break
 
-        description_parts.append(heading_text)
-        description_length += len(heading_text)
-        for line in item_lines:
-            item_text = f"\n{line}"
-            if description_length + len(item_text) > description_limit:
-                overflow = True
+        if category == "Appearance":
+            subcategories = tuple(
+                category_name.split(" | ", maxsplit=1)[1]
+                for category_name in INVENTORY_CATEGORIES
+                if category_name.startswith("Appearance | ")
+            )
+            sections = [
+                (
+                    subcategory,
+                    [
+                        line
+                        for item_subcategory, line in entries
+                        if item_subcategory == subcategory
+                    ],
+                )
+                for subcategory in subcategories
+            ]
+        else:
+            sections = [(None, [line for _, line in entries])]
+
+        description_parts = []
+        description_length = 0
+        category_item_count = 0
+        category_overflow = False
+
+        for subcategory, lines in sections:
+            if not lines:
+                continue
+            if subcategory:
+                heading_prefix = "\n\n" if description_parts else ""
+                heading = f"{heading_prefix}**{subcategory}**"
+                if description_length + len(heading) + 1 > description_limit:
+                    category_overflow = True
+                    break
+                description_parts.append(heading)
+                description_length += len(heading)
+
+            for line in lines:
+                item_text = f"\n{line}" if description_parts else line
+                if description_length + len(item_text) > description_limit:
+                    category_overflow = True
+                    break
+                description_parts.append(item_text)
+                description_length += len(item_text)
+                category_item_count += 1
+            if category_overflow:
                 break
-            description_parts.append(item_text)
-            description_length += len(item_text)
-            included_items += 1
-        if overflow:
-            break
 
-    total_items = sum(len(lines) for lines in grouped_items.values())
-    if not description_parts:
-        description = "Inventory is temporarily unavailable."
-    else:
-        description = "".join(description_parts)
+        if description_parts:
+            description = "".join(description_parts)
+            embeds.append({
+                "title": title,
+                "description": description,
+                "color": ACTIVE_COLOR,
+            })
+            total_embed_chars += len(title) + len(description)
+            included_items += category_item_count
+
+        if category_overflow:
+            break
 
     omitted_items = total_items - included_items
-    if omitted_items:
-        description += (
+    if omitted_items and embeds:
+        marker = (
             f"\n\n*{omitted_items} more items omitted due to Discord's "
             "embed size limit.*"
         )
+        last_embed = embeds[-1]
+        if (
+            len(last_embed["description"]) + len(marker) <= 4096
+            and total_embed_chars + len(marker) <= 6000
+        ):
+            last_embed["description"] += marker
 
-    return {
-        "title": title,
-        "description": description,
-        "color": ACTIVE_COLOR,
-    }
+    if not embeds:
+        return [{
+            "title": "Inventory",
+            "description": "Inventory is temporarily unavailable.",
+            "color": ACTIVE_COLOR,
+        }]
+    return embeds
 
 
 def _format_number(value):
