@@ -94,84 +94,66 @@ def build_inventory_embed(inventory):
         category = inventory_category(item)
         item_line = (
             f"- **{item.get('item', 'Unknown item')}** - "
-            f"{item.get('ducats', '?'):,} Ducats / "
-            f"{item.get('credits', '?'):,} Credits"
+            f"{_format_number(item.get('ducats'))} Ducats / "
+            f"{_format_number(item.get('credits'))} Credits"
         )
         grouped_items[category].append(item_line)
 
     title = "Baro Ki'Teer's Inventory"
-    fields = []
-    total_chars = len(title) + 128
-    omitted_items = 0
-    stop_adding = False
+    description_parts = []
+    description_length = 0
+    included_items = 0
+    description_limit = 3900
+    overflow = False
 
     for category, item_lines in grouped_items.items():
-        line_index = 0
-        part = 1
-        while line_index < len(item_lines) and len(fields) < 25:
-            field_name = category
-            if part > 1:
-                field_name += f" (continued {part})"
+        if not item_lines:
+            continue
 
-            value_limit = min(896, 6000 - total_chars - len(field_name))
-            if value_limit < 1:
-                stop_adding = True
+        heading = f"**{category}**"
+        heading_prefix = "\n\n" if description_parts else ""
+        heading_text = f"{heading_prefix}{heading}"
+        if description_length + len(heading_text) + 1 > description_limit:
+            overflow = True
+            break
+
+        description_parts.append(heading_text)
+        description_length += len(heading_text)
+        for line in item_lines:
+            item_text = f"\n{line}"
+            if description_length + len(item_text) > description_limit:
+                overflow = True
                 break
-
-            field_lines = []
-            field_length = 0
-            while line_index < len(item_lines):
-                line = item_lines[line_index]
-                added_length = len(line) + bool(field_lines)
-                if field_length + added_length > value_limit:
-                    break
-                field_lines.append(line)
-                field_length += added_length
-                line_index += 1
-
-            if not field_lines:
-                stop_adding = True
-                break
-
-            value = "\n".join(field_lines)
-            fields.append({
-                "name": field_name,
-                "value": value,
-                "inline": False,
-            })
-            total_chars += len(field_name) + len(value)
-            part += 1
-
-        omitted_items += len(item_lines) - line_index
-        if stop_adding or len(fields) >= 25:
+            description_parts.append(item_text)
+            description_length += len(item_text)
+            included_items += 1
+        if overflow:
             break
 
     total_items = sum(len(lines) for lines in grouped_items.values())
-    included_items = sum(
-        len(field["value"].splitlines()) for field in fields
-    )
+    if not description_parts:
+        description = "Inventory is temporarily unavailable."
+    else:
+        description = "".join(description_parts)
+
     omitted_items = total_items - included_items
-
-    if omitted_items and fields:
-        marker = (
-            f"\n\n... {omitted_items} more items omitted "
-            "by Discord's embed limits."
+    if omitted_items:
+        description += (
+            f"\n\n*{omitted_items} more items omitted due to Discord's "
+            "embed size limit.*"
         )
-        last_field = fields[-1]
-        extra_chars = len(marker)
-        if (
-            len(last_field["value"]) + extra_chars <= 1024
-            and total_chars - 128 + extra_chars <= 6000
-        ):
-            last_field["value"] += marker
 
-    if not fields:
-        return {
-            "title": title,
-            "description": "Inventory is temporarily unavailable.",
-            "color": ACTIVE_COLOR,
-        }
-    return {"title": title, "color": ACTIVE_COLOR, "fields": fields}
+    return {
+        "title": title,
+        "description": description,
+        "color": ACTIVE_COLOR,
+    }
+
+
+def _format_number(value):
+    if isinstance(value, int):
+        return f"{value:,}"
+    return str(value) if value is not None else "?"
 
 
 if __name__ == "__main__":
