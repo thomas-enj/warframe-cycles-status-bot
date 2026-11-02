@@ -8,7 +8,7 @@ This project uses [Cloudflare Workers](https://workers.cloudflare.com/) and Pyth
 
 - **Open Worlds**: Displays the day/night and warm/cold cycles for Cetus, Orb Vallis, and Cambion Drift.
 - **Duviri & Zariman**: Tracks the current Duviri spiral and Zariman bounties.
-- **Extensible**: Designed to easily add more trackers, like Baro Ki'Teer's arrival.
+- **Baro Ki'Teer**: Shows his arrival status and location, and updates a separate Discord message with his inventory when he arrives or leaves.
 
 ## Prerequisites
 
@@ -25,44 +25,63 @@ This project uses [Cloudflare Workers](https://workers.cloudflare.com/) and Pyth
 - In the channels you want the bot to post in, send placeholder messages (e.g., "Loading...").
 - Right-click on the channel and the message to copy the **Channel ID** and **Message ID** for each status panel.
 
-### 2. Cloudflare Worker Secrets
+### 2. Cloudflare Worker Variables and Secrets
 
-In your Cloudflare Worker's dashboard, go to *Settings > Variables* and add the following secrets under **Environment Variable Bindings**:
+In each Cloudflare Worker's dashboard, go to *Settings > Variables* and configure the required bindings:
 
 | Variable | Description |
 | :--- | :--- |
-| `DISCORD_TOKEN` | Your Discord bot token. |
-| `OPEN_WORLD_CHANNEL_ID` | The Channel ID for the Open Worlds status message. |
-| `OPEN_WORLD_MESSAGE_ID` | The Message ID for the Open Worlds status message. |
-| `DUVIRI_CHANNEL_ID` | The Channel ID for the Duviri & Zariman status message. |
-| `DUVIRI_MESSAGE_ID` | The Message ID for the Duviri & Zariman status message. |
-| `BARO_MSG1_ID` | The Baro status and countdown message ID. |
-| `BARO_MSG2_ID` | The Baro inventory message ID. |
-| `GITHUB_TOKEN` | A GitHub token with permission to dispatch an event to this repository. |
-| `GITHUB_REPO` | The repository in `owner/repository` format. |
+| `DISCORD_TOKEN` | Discord bot token. Set this on both Workers. |
+| `OPEN_WORLD_CHANNEL_ID` | Channel ID for the Open Worlds status message (cycles Worker). |
+| `OPEN_WORLD_MESSAGE_ID` | Message ID for the Open Worlds status message (cycles Worker). |
+| `DUVIRI_CHANNEL_ID` | Channel ID for the Duviri & Zariman status message (cycles Worker). |
+| `DUVIRI_MESSAGE_ID` | Message ID for the Duviri & Zariman status message (cycles Worker). |
+| `DISCORD_CHANNEL` | Channel containing the Baro messages (Baro Worker). |
+| `BARO_MSG1_ID` | Baro status and countdown message ID (Baro Worker). |
+| `BARO_MSG2_ID` | Baro inventory message ID (Baro Worker). |
+| `GITHUB_TOKEN` | Token authorized to dispatch a repository event (Baro Worker). |
+| `GITHUB_REPO` | Repository in `owner/repository` format (Baro Worker). |
 
-For the Baro worker, also bind `DISCORD_CHANNEL` to the channel containing both Baro messages. The inventory workflow needs the GitHub Actions secrets `DISCORD_TOKEN`, `DISCORD_CHANNEL`, and `BARO_MSG2_ID`. The Worker needs `DISCORD_TOKEN`, `DISCORD_CHANNEL`, `BARO_MSG1_ID`, `BARO_MSG2_ID`, `GITHUB_TOKEN`, and `GITHUB_REPO` as Cloudflare secrets or environment bindings.
+Add these GitHub Actions repository secrets under *Settings > Secrets and variables > Actions*:
+
+| Secret | Used by |
+| :--- | :--- |
+| `CLOUDFLARE_API_TOKEN` | Both deployment workflows. |
+| `CLOUDFLARE_ACCOUNT_ID` | Both deployment workflows. |
+| `DISCORD_TOKEN` | Baro inventory workflow. |
+| `DISCORD_CHANNEL` | Baro inventory workflow; channel containing the inventory message. |
+| `BARO_MSG2_ID` | Baro inventory workflow; inventory message ID. |
+
+The Baro Worker checks Baro's state hourly. When his presence changes (or on its first check), it dispatches an event that runs the inventory workflow.
+
+To update the inventory manually, open **Actions > Update Baro Inventory > Run workflow** and choose whether Baro is currently present. The workflow installs `requests` from [`scripts/requirements.txt`](scripts/requirements.txt) and updates the inventory message, or marks the shop closed when Baro is absent.
 
 ## 🚀 Deployment
 
 1.  **Fork** this repository to your own GitHub account.
-2.  In the Cloudflare dashboard, create a new Worker.
-3.  Connect your Worker to your GitHub fork (*Settings > Deployments*). Enable automatic deployments on the `main` branch.
-4.  Go to the *Triggers* tab in your Worker's settings and add a **Cron Trigger** to run the script on a schedule (e.g., `*/5 * * * *` to run every 5 minutes).
+2.  Add the Cloudflare API token and account ID as GitHub Actions secrets, as described above.
+3.  Configure the Workers' variables and secrets in Cloudflare.
 
-Your bot will now deploy and update automatically on every `git push` to the main branch.
+The GitHub Actions workflows deploy the cycles Worker when files under `src/` or its Wrangler configuration change, and the Baro Worker when files under `baro-worker/` change. Their schedules are configured in the respective `wrangler.toml` files. Both Workers update on their configured Cloudflare Cron Triggers.
 
 ## Project Structure
 
 ```
 .
+├── baro-worker/
+│   ├── src/main.py       # Baro status Worker; dispatches the inventory workflow when Baro's state changes.
+│   └── wrangler.toml     # Baro Worker configuration and hourly schedule.
+├── scripts/
+│   ├── fetch_baro_inventory.py  # Fetches and formats Baro's inventory for Discord.
+│   └── requirements.txt         # Python dependencies for the inventory workflow.
 ├── src/
-│   ├── duviri.py       # Logic for fetching Duviri and Zariman cycle data and updating Discord.
-│   ├── entry.py        # Main entry point for the Cloudflare Worker, handling triggers and coordinating updates.
-│   ├── open_world.py   # Logic for fetching Cetus, Orb Vallis, Cambion Drift cycle data and updating Discord.
-│   └── utils.py        # Utility functions for API interaction, time formatting, and Discord message sending.
-├── .gitignore          # Specifies intentionally untracked files to ignore.
-├── README.md           # Project README file.
-├── wrangler.toml       # Configuration file for Cloudflare Workers.
-└── .wrangler/          # Local development assets and build artifacts for Cloudflare Workers.
+│   ├── duviri.py       # Fetches Duviri and Zariman cycle data and updates Discord.
+│   ├── entry.py        # Cycles Worker entry point.
+│   ├── open_world.py   # Fetches open-world cycle data and updates Discord.
+│   └── utils.py        # Shared API, time-formatting, and Discord helpers.
+├── .github/
+│   ├── workflows/      # Worker deployment and Baro inventory workflows.
+│   └── dependabot.yml  # Weekly dependency update checks for pip and GitHub Actions.
+├── README.md
+└── wrangler.toml       # Cycles Worker configuration and schedule.
 ```
