@@ -88,7 +88,7 @@ async def update_open_world_channel(env):
         "name": "🦠 Deimos (Cambion Drift)",
         "value": (
             f"State: **{cb_active}**\n"
-            f"Next: **{cb_next}**  {cb_remaining}\n\u200b"
+            f"Next: **{cb_next}**  {cb_remaining}"
         ),
         "inline": False,
     })

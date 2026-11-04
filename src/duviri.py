@@ -65,7 +65,7 @@ async def update_duviri_channel(env):
         "name": "🚢 Zariman Ten-Zero",
         "value": (
             f"Occupant: **{z_state}**\n"
-            f"Next: **{z_next}**  {z_remaining}\n\u200b"
+            f"Next: **{z_next}**  {z_remaining}"
         ),
         "inline": False,
     })
