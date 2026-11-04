@@ -67,10 +67,7 @@ async def send_discord_patch(
     url = f"https://discord.com/api/v10/channels/{channel_id}/messages/{message_id}"
 
     if not token:
-        print("❌ Error: DISCORD_TOKEN is empty or missing!")
-        return
-
-    print(f"🔍 DEBUG: DISCORD_TOKEN loaded (length: {len(token)} characters)")
+        raise RuntimeError("DISCORD_TOKEN is empty or missing")
 
     payload = {
         "method": "PATCH",
@@ -88,8 +85,9 @@ async def send_discord_patch(
 
     if not res.ok:
         error_text = await res.text()
-        print(
-            f"❌ Discord API Error ({res.status}) for Channel {channel_id}: {error_text}"
+        raise RuntimeError(
+            f"Discord API error ({res.status}) for channel {channel_id}: "
+            f"{error_text}"
         )
-    else:
-        print(f"✅ Successfully updated message in channel {channel_id}")
+
+    print(f"Successfully updated message in channel {channel_id}")
