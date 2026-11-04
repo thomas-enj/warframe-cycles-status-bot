@@ -75,9 +75,6 @@ async def update_duviri_channel(env):
         "description": "\u200b",
         "color": 10181046,  # Purple
         "fields": fields,
-        "footer": {
-            "text": "Updated automatically via Cloudflare Workers"
-        },
     }
 
     await send_discord_patch(

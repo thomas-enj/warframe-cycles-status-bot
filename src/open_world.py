@@ -98,9 +98,6 @@ async def update_open_world_channel(env):
         "description": "\u200b",
         "color": 3447003,  # Blue
         "fields": fields,
-        "footer": {
-            "text": "Updated automatically via Cloudflare Workers"
-        },
     }
 
     await send_discord_patch(

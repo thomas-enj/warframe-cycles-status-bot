@@ -45,9 +45,6 @@ def _build_fissures_embed(fissures: list) -> dict:
         ),
         "color": 3447003,
         "fields": fields,
-        "footer": {
-            "text": "Automatically updated via Cloudflare Workers"
-        },
     }
 
 
