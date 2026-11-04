@@ -2,6 +2,13 @@ from datetime import datetime, timezone
 
 from utils import fetch_json, send_discord_patch
 
+_TIER_ORDER = {
+    tier: index
+    for index, tier in enumerate(
+        ("Lith", "Meso", "Neo", "Axi", "Requiem", "Omnia")
+    )
+}
+
 
 def _fissure_column(fissure: dict) -> str:
     if fissure.get("isStorm"):
@@ -48,7 +55,7 @@ def _format_fissure(fissure: dict) -> str:
 def _build_fissures_embed(fissures: list) -> dict:
     grouped = {"normal": [], "steel_path": [], "railjack": []}
     for fissure in fissures:
-        grouped[_fissure_column(fissure)].append(_format_fissure(fissure))
+        grouped[_fissure_column(fissure)].append(fissure)
 
     columns = (
         ("normal", "Standard"),
@@ -59,7 +66,16 @@ def _build_fissures_embed(fissures: list) -> dict:
         {
             "name": name,
             "value": "\u200b\n" + (
-                "\n\u200b\n".join(grouped[key]) or "No active fissures"
+                "\n\u200b\n".join(
+                    _format_fissure(fissure)
+                    for fissure in sorted(
+                        grouped[key],
+                        key=lambda item: _TIER_ORDER.get(
+                            item.get("tier"), len(_TIER_ORDER)
+                        ),
+                    )
+                )
+                or "No active fissures"
             ),
             "inline": True,
         }
