@@ -87,7 +87,7 @@ def _build_fissures_embed(fissures: list) -> dict:
         "description": (
             "Active missions for opening Void Relics.\n\n\u200b"
         ),
-        "color": 3447003,
+        "color": 16777215,  # White color for fissures embed
         "fields": fields,
     }
 
