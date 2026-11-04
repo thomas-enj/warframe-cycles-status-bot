@@ -8,8 +8,8 @@ from pyodide.ffi import to_js
 WARFRAME_API_URL = "https://api.warframestat.us/pc/voidTrader"
 DISCORD_API_URL = "https://discord.com/api/v10"
 GITHUB_API_URL = "https://api.github.com"
-ACTIVE_COLOR = 15844367
-INACTIVE_COLOR = 15158332
+ACTIVE_COLOR = 38564  # Blue color for active status
+INACTIVE_COLOR = 7570050  # Grey color for inactive status
 
 
 async def on_scheduled(event, env, ctx=None):
