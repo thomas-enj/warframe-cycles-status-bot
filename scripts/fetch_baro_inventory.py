@@ -5,8 +5,8 @@ import requests
 
 WARFRAME_API_URL = "https://api.warframestat.us/pc/voidTrader"
 DISCORD_API_URL = "https://discord.com/api/v10"
-ACTIVE_COLOR = 15844367
-INACTIVE_COLOR = 15158332
+ACTIVE_COLOR = 38564
+INACTIVE_COLOR = 7570050
 INVENTORY_CATEGORIES = (
     "Mods",
     "Appearance | Warframe Skin",
