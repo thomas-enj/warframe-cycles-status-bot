@@ -1,7 +1,7 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 
-from js import Date, Headers, Intl, Object, Request, fetch
+from js import Headers, Object, Request, fetch
 from pyodide.ffi import to_js
 
 
@@ -28,15 +28,13 @@ async def on_scheduled(event, env, ctx=None):
         status_text = (
             "**Baro Ki'Teer is currently here!**\n"
             f"📍 **Location:** {location}\n"
-            f"⏳ **Leaves:** {_format_countdown(expiry)} "
-            f"({_format_paris_datetime(expiry)})"
+            f"⏳ **Leaves:** {_format_discord_timestamp(expiry)}"
         )
     else:
         status_text = (
             "**Baro Ki'Teer is currently absent.**\n\n"
             f"📍 **Next location:** {location}\n"
-            f"⏳ **Arrives:** {_format_countdown(activation)} "
-            f"({_format_paris_datetime(activation)})"
+            f"⏳ **Arrives:** {_format_discord_timestamp(activation)}"
         )
 
     status_text += "\n\n\u200b"
@@ -54,44 +52,8 @@ def _discord_timestamp(value):
     return int(datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp())
 
 
-def _format_countdown(target_timestamp):
-    remaining = max(
-        0,
-        target_timestamp - int(datetime.now(timezone.utc).timestamp()),
-    )
-    if remaining == 0:
-        return "now"
-
-    for seconds_per_unit, unit in (
-        (86400, "day"),
-        (3600, "hour"),
-        (60, "minute"),
-    ):
-        if remaining >= seconds_per_unit:
-            amount = (remaining + seconds_per_unit - 1) // seconds_per_unit
-            plural = "s" if amount != 1 else ""
-            return f"in {amount} {unit}{plural}"
-
-    return "in less than a minute"
-
-
-def _format_paris_datetime(target_timestamp):
-    options = to_js(
-        {
-            "weekday": "long",
-            "month": "long",
-            "day": "numeric",
-            "year": "numeric",
-            "hour": "numeric",
-            "minute": "2-digit",
-            "timeZone": "Europe/Paris",
-            "timeZoneName": "shortOffset",
-        },
-        dict_converter=Object.fromEntries,
-    )
-    formatter = Intl.DateTimeFormat.new("en-US", options)
-    formatted = str(formatter.format(Date.new(target_timestamp * 1000)))
-    return formatted.replace("GMT", "UTC")
+def _format_discord_timestamp(target_timestamp):
+    return f"<t:{target_timestamp}:R>"
 
 
 def _discord_headers(token):

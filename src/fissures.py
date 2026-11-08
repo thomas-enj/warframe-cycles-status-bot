@@ -1,6 +1,8 @@
-from datetime import datetime, timezone
-
-from utils import fetch_json, send_discord_patch
+from utils import (
+    fetch_json,
+    format_discord_timestamp_from_iso,
+    send_discord_patch,
+)
 
 _TIER_ORDER = {
     tier: index
@@ -18,38 +20,15 @@ def _fissure_column(fissure: dict) -> str:
     return "normal"
 
 
-def _format_time_left(expiry: str) -> str:
-    if not expiry:
-        return "Unknown time"
-
-    try:
-        expiration = datetime.fromisoformat(expiry.replace("Z", "+00:00"))
-    except ValueError:
-        return "Unknown time"
-
-    if expiration.tzinfo is None:
-        expiration = expiration.replace(tzinfo=timezone.utc)
-
-    seconds_left = int(
-        (expiration - datetime.now(timezone.utc)).total_seconds()
-    )
-    if seconds_left <= 0:
-        return "Expired"
-
-    minutes_left = (seconds_left + 59) // 60
-    hours, minutes = divmod(minutes_left, 60)
-    if hours:
-        return f"{hours} h {minutes} min left"
-    return f"{minutes} min left"
-
-
 def _format_fissure(fissure: dict) -> str:
     tier = fissure.get("tier") or "Unknown tier"
     mission_type = fissure.get("missionType") or "Unknown mission"
     node = fissure.get("node") or "Unknown node"
-    remaining = _format_time_left(fissure.get("expiry"))
+    expiry_timestamp = format_discord_timestamp_from_iso(
+        fissure.get("expiry"), "Unknown time"
+    )
 
-    return f"**{tier}**\n{mission_type} · {node} · {remaining}"
+    return f"**{tier}**\n{mission_type} · {node} · {expiry_timestamp}"
 
 
 def _build_fissures_embed(fissures: list) -> dict:

@@ -1,7 +1,7 @@
 import asyncio
 from utils import (
     fetch_json,
-    format_remaining_from_iso,
+    format_discord_timestamp_from_iso,
     send_discord_patch,
 )
 
@@ -50,7 +50,7 @@ async def update_open_world_channel(env):
 
     # 🌄 Cetus
     c_expiry = cetus.get("expiry")
-    c_remaining = format_remaining_from_iso(c_expiry)
+    c_timestamp = format_discord_timestamp_from_iso(c_expiry)
     is_day = cetus.get("isDay")
     c_state = "Day ☀️" if is_day else "Night 🌙"
     c_next = "Night 🌙" if is_day else "Day ☀️"
@@ -58,7 +58,7 @@ async def update_open_world_channel(env):
         "name": "🌄 Cetus (Plains of Eidolon)",
         "value": (
             f"State: **{c_state}**\n"
-            f"Next: **{c_next}**  {c_remaining}"
+            f"Next: **{c_next}**  {c_timestamp}"
         ),
         "inline": False,
     })
@@ -66,14 +66,14 @@ async def update_open_world_channel(env):
 
     # ❄️ Fortuna
     v_expiry = vallis.get("expiry")
-    v_remaining = format_remaining_from_iso(v_expiry)
+    v_timestamp = format_discord_timestamp_from_iso(v_expiry)
     v_state = _format_vallis_state(vallis)
     v_next = "Cold ❄️" if "Warm" in v_state else "Warm 🔥"
     fields.append({
         "name": "❄️ Fortuna (Orb Vallis)",
         "value": (
             f"State: **{v_state}**\n"
-            f"Next: **{v_next}**  {v_remaining}"
+            f"Next: **{v_next}**  {v_timestamp}"
         ),
         "inline": False,
     })
@@ -81,14 +81,14 @@ async def update_open_world_channel(env):
 
     # 🦠 Deimos
     cb_expiry = cambion.get("expiry")
-    cb_remaining = format_remaining_from_iso(cb_expiry)
+    cb_timestamp = format_discord_timestamp_from_iso(cb_expiry)
     cb_active = _format_cambion_state(cambion)
     cb_next = "Vome 🔵" if "Fass" in cb_active else "Fass 🔴"
     fields.append({
         "name": "🦠 Deimos (Cambion Drift)",
         "value": (
             f"State: **{cb_active}**\n"
-            f"Next: **{cb_next}**  {cb_remaining}"
+            f"Next: **{cb_next}**  {cb_timestamp}"
         ),
         "inline": False,
     })

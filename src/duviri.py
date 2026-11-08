@@ -1,7 +1,7 @@
 import asyncio
 from utils import (
     fetch_json,
-    format_remaining_from_iso,
+    format_discord_timestamp_from_iso,
     send_discord_patch,
 )
 
@@ -41,7 +41,7 @@ async def update_duviri_channel(env):
 
     # 🌀 Duviri
     d_expiry = duviri.get("expiry")
-    d_remaining = format_remaining_from_iso(d_expiry)
+    d_timestamp = format_discord_timestamp_from_iso(d_expiry)
     d_state_raw = str(duviri.get("state", "")).lower()
     d_state = emotion_en.get(d_state_raw, d_state_raw.capitalize())
     d_next = emotion_next.get(d_state_raw, "Unknown")
@@ -49,7 +49,7 @@ async def update_duviri_channel(env):
         "name": "🌀 Duviri Spiral",
         "value": (
             f"Mood: **{d_state}**\n"
-            f"Next: **{d_next}**  {d_remaining}"
+            f"Next: **{d_next}**  {d_timestamp}"
         ),
         "inline": False,
     })
@@ -57,7 +57,7 @@ async def update_duviri_channel(env):
 
     # 🚢 Zariman
     z_expiry = zariman.get("expiry")
-    z_remaining = format_remaining_from_iso(z_expiry)
+    z_timestamp = format_discord_timestamp_from_iso(z_expiry)
     is_corpus = zariman.get("isCorpus")
     z_state = "Corpus 🔷" if zariman.get("isCorpus") else "Grineer 🔴"
     z_next = "Grineer 🔴" if is_corpus else "Corpus 🔷"
@@ -65,7 +65,7 @@ async def update_duviri_channel(env):
         "name": "🚢 Zariman Ten-Zero",
         "value": (
             f"Occupant: **{z_state}**\n"
-            f"Next: **{z_next}**  {z_remaining}"
+            f"Next: **{z_next}**  {z_timestamp}"
         ),
         "inline": False,
     })

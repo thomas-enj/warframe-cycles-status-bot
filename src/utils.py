@@ -22,42 +22,22 @@ def iso_to_unix(iso_str: str) -> int:
         return 0
     clean_iso = iso_str.replace("Z", "+00:00")
     dt = datetime.fromisoformat(clean_iso)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
     return int(dt.timestamp())
 
 
-def format_remaining_from_iso(iso_str: str) -> str:
-    """Formats remaining duration using natural English hour/minute labels."""
+def format_discord_timestamp_from_iso(
+    iso_str: str, fallback: str = "unknown"
+) -> str:
+    """Formats an ISO 8601 date as a localized Discord relative timestamp."""
     if not iso_str:
-        return "unknown"
-
-    clean_iso = iso_str.replace("Z", "+00:00")
-    expiry = datetime.fromisoformat(clean_iso)
-    if expiry.tzinfo is None:
-        expiry = expiry.replace(tzinfo=timezone.utc)
-
-    now = datetime.now(timezone.utc)
-    total_seconds = int((expiry - now).total_seconds())
-
-    if total_seconds <= 0:
-        return "now"
-
-    hours = total_seconds // 3600
-    minutes = (total_seconds % 3600) // 60
-    seconds = total_seconds % 60
-
-    hour_word = "hour" if hours == 1 else "hours"
-    minute_word = "minute" if minutes == 1 else "minutes"
-    second_word = "second" if seconds == 1 else "seconds"
-
-    if hours > 0:
-        if minutes > 0:
-            if hours == 1 and minutes == 1:
-                return " in 1 hour and 1 minute"
-            return f" in {hours} {hour_word} {minutes} {minute_word}"
-        return f" in {hours} {hour_word}"
-    if minutes > 0:
-        return f" in {minutes} {minute_word}"
-    return f" in {seconds} {second_word}"
+        return fallback
+    try:
+        timestamp = iso_to_unix(iso_str)
+    except (OverflowError, ValueError):
+        return fallback
+    return f"<t:{timestamp}:R>"
 
 
 async def send_discord_patch(
